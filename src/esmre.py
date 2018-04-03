@@ -234,19 +234,28 @@ def shortlist(hints):
 
 
 class Index(object):
-    def __init__(self):
+    def __init__(self, regex_tuples=None):
         self.esm = esm.Index()
         self.hintless_objects = list()
         self.fixed = False
         self.lock = threading.Lock()
+        self.regex_tuples = set()
+        if regex_tuples:
+            for tup in regex_tuples:
+                self.enter(tup[0],tup[1])
+
+
+    def __reduce__(self):
+        return (self.__class__, (self.regex_tuples, ))
         
         
     def enter(self, regex, obj):
+        self.regex_tuples.add((regex,obj))
         self.lock.acquire()
         try:
             
             if self.fixed:
-                raise TypeError, "enter() cannot be called after query()"
+                raise TypeError("enter() cannot be called after query()")
             
             keywords = shortlist(hints(regex))
             
